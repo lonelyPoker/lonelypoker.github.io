@@ -5,6 +5,7 @@
   * aiohttp
   * django
   * opencv
+  * pyqt
 * **Nodejs**
   * *pupeeteer*
   * typescript
