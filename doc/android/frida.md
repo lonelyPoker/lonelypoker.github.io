@@ -270,4 +270,165 @@ java.lang.Throwable
         at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:493)
         at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:858
 ```
+## `EditText.getText`代码定位
 
+>android.widget.EditText
+
+通过HOOK 安卓组件输入框`EditText.getText`，来定位打印堆栈信息，从而找到相关的代码信息
+
+```js
+    var widget_edittest = Java.use("android.widget.EditText");
+    widget_edittest.getText.overload().implementation = function(){
+        var result = this.getText();
+        result = Java.cast(result,Java.use("java.lang.CharSequence"))
+        console.log(result.toString());
+        return result
+    }
+```
+HOOK出来的关键结果如下，感觉作用不是很大。这里涉及到frida Java类型强转方法`Java.cast`
+```
+java.lang.Throwable
+        at android.widget.EditText.getText(Native Method)
+        at android.widget.EditText.getText(EditText.java:74)
+        at android.widget.TextView.getSelectionEnd(TextView.java:9343)
+        at android.widget.Editor.onDraw(Editor.java:1758)
+        at android.widget.TextView.onDraw(TextView.java:7229)
+        at android.view.View.draw(View.java:20207)
+        at android.view.View.updateDisplayListIfDirty(View.java:19082)
+        at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4317)
+        at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4290)
+        at android.view.View.updateDisplayListIfDirty(View.java:19042)
+        at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4317)
+        at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4290)
+        at android.view.View.updateDisplayListIfDirty(View.java:19042)
+        at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4317)
+        at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4290)
+        at android.view.View.updateDisplayListIfDirty(View.java:19042)
+        at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4317)
+        at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4290)
+        at android.view.View.updateDisplayListIfDirty(View.java:19042)
+        at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4317)
+        at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4290)
+        at android.view.View.updateDisplayListIfDirty(View.java:19042)
+        at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4317)
+        at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4290)
+        at android.view.View.updateDisplayListIfDirty(View.java:19042)
+        at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4317)
+        at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4290)
+        at android.view.View.updateDisplayListIfDirty(View.java:19042)
+        at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4317)
+        at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4290)
+        at android.view.View.updateDisplayListIfDirty(View.java:19042)
+        at android.view.ThreadedRenderer.updateViewTreeDisplayList(ThreadedRenderer.java:686)
+        at android.view.ThreadedRenderer.updateRootDisplayList(ThreadedRenderer.java:692)
+        at android.view.ThreadedRenderer.draw(ThreadedRenderer.java:801)
+        at android.view.ViewRootImpl.draw(ViewRootImpl.java:3318)
+        at android.view.ViewRootImpl.performDraw(ViewRootImpl.java:3122)
+        at android.view.ViewRootImpl.performTraversals(ViewRootImpl.java:2481)
+        at android.view.ViewRootImpl.doTraversal(ViewRootImpl.java:1463)
+        at android.view.ViewRootImpl$TraversalRunnable.run(ViewRootImpl.java:7190)
+        at android.view.Choreographer$CallbackRecord.run(Choreographer.java:949)
+        at android.view.Choreographer.doCallbacks(Choreographer.java:761)
+        at android.view.Choreographer.doFrame(Choreographer.java:696)
+        at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:935)
+        at android.os.Handler.handleCallback(Handler.java:873)
+        at android.os.Handler.dispatchMessage(Handler.java:99)
+        at android.os.Looper.loop(Looper.java:193)
+        at android.app.ActivityThread.main(ActivityThread.java:6718)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:493)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:858)
+```
+
+## `Collections.sort`定位
+
+> java.util.Collections
+
+如果反编译app源代码中有对List接口实现的类进行`sort`排序，我们可以通过hook该方法找到对应的堆栈信息
+```js
+Java.perform(function () {
+    var collections = Java.use("java.util.Collections");
+    collections.sort.overload('java.util.List').implementation = function (_list) {
+        _list = Java.cast(_list, Java.use("java.util.ArrayList"))
+        statckflow_display()
+        console.log("collections.sort(a) =>", _list + "");
+        return this.sort(_list)
+    };
+    collections.sort.overload('java.util.List', 'java.util.Comparator').implementation = function (_list, comparator) {
+        _list = Java.cast(_list, Java.use("java.util.ArrayList"))
+        statckflow_display()
+        console.log("collections.sort(a,b) =>", _list + "", comparator);
+        return this.sort(_list, comparator)
+    }
+})
+```
+HOOK出来的关键结果如下
+```log
+collections.sort(a) => [timeStamp=1632847588877, loginImei=Android358123090192582, equtype=ANDROID, userPwd=12345678, username=15926223464]
+java.lang.Throwable
+        at java.util.Collections.sort(Native Method)
+        at com.dodonew.online.http.RequestUtil.paraMap(RequestUtil.java:73)
+        at com.dodonew.online.http.JsonRequest.addRequestMap(JsonRequest.java:112)   
+        at com.dodonew.online.ui.LoginActivity.requestNetwork(LoginActivity.java:161)
+        at com.dodonew.online.ui.LoginActivity.login(LoginActivity.java:134)
+        at com.dodonew.online.ui.LoginActivity.onClick(LoginActivity.java:103)       
+        at android.view.View.performClick(View.java:6597)
+        at android.view.View.performClickInternal(View.java:6574)
+        at android.view.View.access$3100(View.java:778)
+        at android.view.View$PerformClick.run(View.java:25885)
+        at android.os.Handler.handleCallback(Handler.java:873)
+        at android.os.Handler.dispatchMessage(Handler.java:99)
+        at android.os.Looper.loop(Looper.java:193)
+        at android.app.ActivityThread.main(ActivityThread.java:6718)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:493)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:858)
+```
+
+
+## `JSONObject.getString & JSONObject.put`代码定位 
+
+> org.json.JSONObject
+
+绝大多数安全性较高的请求携带的数据去提交POST，都会对起JSON数据格式进行对称加密处理。所以当下去HOOK相关的JSON库的方法是很有必要的。闲话不多说上代码。
+
+```js
+Java.perform(function(){
+    var JSONObject = Java.use("org.json.JSONObject");
+    JSONObject.getString.overload('java.lang.String').implementation = function(a){
+        console.log("JSONObject.getString=>",a);
+        
+        return this.getString(a);
+    }
+    JSONObject.put.overload('java.lang.String', 'java.lang.Object').implementation = function(a,b){
+        console.log("JSONObject.put=>",a,b);
+        statckflow_display()
+        return this.put(a,b);
+    }
+})
+```
+HOOK出来的关键结果如下
+```log
+JSONObject.put=> Encrypt NIszaqFPos1vd0pFqKlB42Np5itPxaNH//FDsRnlBfgL4lcVxjXii/C1s6R3+T7ASlI9/uryHexe
+uBya62m+egbnh+7Fpx2H3u+3Zae6J4FXT9DD+zA47zdFZ1JVWq/e/BpFm7N2j3bQWgSYZjpvzKH7
+FdBxXfDsBYTCu+NYz/gzMrLjUmhD+MxvMk7kaHpRwmvhm9NSQVWIKPQr5525psGcsJgqa25VGzay
+rizzAek=
+
+java.lang.Throwable
+        at org.json.JSONObject.put(Native Method)
+        at com.dodonew.online.http.JsonRequest.addRequestMap(JsonRequest.java:116)
+        at com.dodonew.online.ui.LoginActivity.requestNetwork(LoginActivity.java:161)
+        at com.dodonew.online.ui.LoginActivity.login(LoginActivity.java:134)
+        at com.dodonew.online.ui.LoginActivity.onClick(LoginActivity.java:103)
+        at android.view.View.performClick(View.java:6597)
+        at android.view.View.performClickInternal(View.java:6574)
+        at android.view.View.access$3100(View.java:778)
+        at android.view.View$PerformClick.run(View.java:25885)
+        at android.os.Handler.handleCallback(Handler.java:873)
+        at android.os.Handler.dispatchMessage(Handler.java:99)
+        at android.os.Looper.loop(Looper.java:193)
+        at android.app.ActivityThread.main(ActivityThread.java:6718)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:493)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:858)
+```
