@@ -26,7 +26,13 @@
             fontsize:'0.9em',
             color:'rgb(90,90,90)',
             language:'chinese'
-      }
+      },
+      pagination: {
+          previousText: '上一章节',
+          nextText: '下一章节',
+          crossChapter: true,
+          crossChapterText: true,
+        }
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>           
@@ -36,6 +42,7 @@
   <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/gitalk.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
+  <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
   <script>
     const gitalk = new Gitalk({
       clientID: 'aeb0770a90e0ae7121f0',
