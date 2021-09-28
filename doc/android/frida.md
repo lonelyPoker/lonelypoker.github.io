@@ -136,7 +136,7 @@ Java.perform(function(){
     };
 }
 ```
-HOOK出来的关键结果如下
+调用堆栈结果如下：
 ```
 java.lang.Throwable
 	at java.util.ArrayList.add(Native Method)
@@ -176,7 +176,7 @@ Java.perform(function(){
     }
 })
 ```
-HOOK出来的关键结果如下
+调用堆栈结果如下：
 ```
 java.lang.Throwable
         at android.text.TextUtils.isEmpty(Native Method)
@@ -199,7 +199,7 @@ java.lang.Throwable
         return this.trim();
     })
 ```
-HOOK出来的关键结果如下
+调用堆栈结果如下：
 ```
 java.lang.Throwable
         at java.lang.String.trim(Native Method)
@@ -248,7 +248,7 @@ Java.perform(function(){
     }
 })
 ```
-HOOK出来的关键结果如下
+调用堆栈结果如下：
 ```
 yang {"equtype":"ANDROID","loginImei":"Android358123090192582","sign":"8921A89B281A267168711D483567C56A","timeStamp":"1632843083552","userPwd":"1234567","username":"15926223463"}   result
 java.lang.Throwable
@@ -285,7 +285,8 @@ java.lang.Throwable
         return result
     }
 ```
-HOOK出来的关键结果如下，感觉作用不是很大。这里涉及到frida Java类型强转方法`Java.cast`
+感觉作用不是很大。这里涉及到frida Java类型强转方法`Java.cast`
+调用堆栈结果如下：
 ```
 java.lang.Throwable
         at android.widget.EditText.getText(Native Method)
@@ -340,7 +341,7 @@ java.lang.Throwable
         at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:858)
 ```
 
-## `Collections.sort`定位
+## `Collections.sort`代码定位
 
 > java.util.Collections
 
@@ -407,7 +408,7 @@ Java.perform(function(){
     }
 })
 ```
-HOOK出来的关键结果如下
+调用堆栈结果如下：
 ```log
 JSONObject.put=> Encrypt NIszaqFPos1vd0pFqKlB42Np5itPxaNH//FDsRnlBfgL4lcVxjXii/C1s6R3+T7ASlI9/uryHexe
 uBya62m+egbnh+7Fpx2H3u+3Zae6J4FXT9DD+zA47zdFZ1JVWq/e/BpFm7N2j3bQWgSYZjpvzKH7
@@ -431,4 +432,116 @@ java.lang.Throwable
         at java.lang.reflect.Method.invoke(Native Method)
         at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:493)
         at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:858)
+```
+
+## `Toast.show`代码定位
+
+> android.widget.Toast
+
+在安卓界面之中提交数据时，有时候会碰到Toast控件弹出加密或登录状态信息。这个时候去HOOK `Toast.show`或许是一个不错的方法。
+```js
+Java.perform(function(){
+    var Toast = Java.use("android.widget.Toast");
+    Toast.show.overload().implementation = function(){
+        statckflow_display()
+        return this.show();
+    }
+})
+```
+调用堆栈结果如下：
+```log
+java.lang.Throwable
+        at android.widget.Toast.show(Native Method)
+        at com.dodonew.online.util.ToastMsg.showToastMsg(ToastMsg.java:66)
+        at com.dodonew.online.base.ProgressActivity.showToast(ProgressActivity.java:81)
+        at com.dodonew.online.ui.LoginActivity$2.onResponse(LoginActivity.java:156)
+        at com.dodonew.online.ui.LoginActivity$2.onResponse(LoginActivity.java:145)
+        at com.dodonew.online.http.JsonBaseRequest.deliverResponse(JsonBaseRequest.java:25)
+        at com.android.volley.ExecutorDelivery$ResponseDeliveryRunnable.run(ExecutorDelivery.java:99)
+        at android.os.Handler.handleCallback(Handler.java:873)
+        at android.os.Handler.dispatchMessage(Handler.java:99)
+        at android.os.Looper.loop(Looper.java:193)
+        at android.app.ActivityThread.main(ActivityThread.java:6718)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:493)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:858)
+```
+
+## `Base64.encodeToString`代码定位
+
+> android.util.Base64
+
+安卓自带Base64的编码库，查找位置时犯困时，去hook这个重点检查对。
+
+```js
+Java.perform(function(){
+    var base64 = Java.use("android.util.Base64");
+    base64.encodeToString.overload('[B', 'int').implementation = function(obj,num){
+        console.log(JSON.stringify(obj) + "",num)
+        let res = this.encodeToString(obj,num)
+        console.log("base64.encodeToString =>",res)
+        statckflow_display()
+        return res
+    }
+})
+```
+调用堆栈结果如下：
+```log
+base64.encodeToString => NIszaqFPos1vd0pFqKlB42Np5itPxaNH//FDsRnlBfgL4lcVxjXii/C1s6R3+T7ASlI9/uryHexe
+uBya62m+ejtGBSEJ/905/B1hK+6qCx+qXV00ibQGgFUmzYPHfSiRg8TKXezBQRXBF4tgmB0/7Pic
+r+Lv8k4GTwx0eDZ5+flfvYnX6GBivVCPdQ8nWAfl2wvr573wffgN7KIvpcYkFhfBW6OR/lBPS2Ta
+8g89ZmA=
+
+java.lang.Throwable
+        at android.util.Base64.encodeToString(Native Method)
+        at com.dodonew.online.util.DesSecurity.encrypt64(DesSecurity.java:49)
+        at com.dodonew.online.http.RequestUtil.encodeDesMap(RequestUtil.java:129)
+        at com.dodonew.online.http.JsonRequest.addRequestMap(JsonRequest.java:113)
+        at com.dodonew.online.ui.LoginActivity.requestNetwork(LoginActivity.java:161)
+        at com.dodonew.online.ui.LoginActivity.login(LoginActivity.java:134)
+        at com.dodonew.online.ui.LoginActivity.onClick(LoginActivity.java:103)
+        at android.view.View.performClick(View.java:6597)
+        at android.view.View.performClickInternal(View.java:6574)
+        at android.view.View.access$3100(View.java:778)
+        at android.view.View$PerformClick.run(View.java:25885)
+        at android.os.Handler.handleCallback(Handler.java:873)
+        at android.os.Handler.dispatchMessage(Handler.java:99)
+        at android.os.Looper.loop(Looper.java:193)
+        at android.app.ActivityThread.main(ActivityThread.java:6718)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:493)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:858)
+```
+
+## `String.getBytes`代码定位
+
+> java.lang.String
+
+```js
+    Java.perform(function(){
+        var str = Java.use("java.lang.String");
+        str.getBytes.overload('java.lang.String').implementation = function(obj){
+            let _tmp = this.getBytes(obj);
+            let string_ = str.$new(_tmp);
+            console.log("string_ => ",string_);
+            return _tmp
+        }
+        str.getBytes.overload().implementation = function(){
+            let _tmp = this.getBytes();
+            let string_ = str.$new(_tmp);
+            console.log("string_ => ",string_);
+            
+            return _tmp
+        }
+    })
+```
+调用堆栈结果如下：
+```log
+java.lang.Throwable
+        at java.lang.String.getBytes(Native Method)
+        at android.util.Base64.decode(Base64.java:118)
+        at com.dodonew.online.util.DesSecurity.decrypt64(DesSecurity.java:54)
+        at com.dodonew.online.http.RequestUtil.decodeDesJson(RequestUtil.java:174)
+        at com.dodonew.online.http.JsonRequest.parseNetworkResponse(JsonRequest.java:82)
+        at com.android.volley.NetworkDispatcher.run(NetworkDispatcher.java:121)
 ```
