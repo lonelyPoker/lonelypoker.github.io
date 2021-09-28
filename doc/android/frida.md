@@ -107,6 +107,5 @@ java.lang.Throwable
         this.request.addRequestMap(para2, 0);
         DodonewOnlineApplication.addRequest(this.request, this);
     }
-
 ```
 可以看出`this.para`是符合hook关键键值对信息的准确性，然后顺藤摸瓜找到`this.request.addRequestMap(para2, 0);`。后面的协议加密流程不做讲解，现阶段只论关键代码定位。
