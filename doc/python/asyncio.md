@@ -1,32 +1,5 @@
 # **Python3.7+ asyncio**库
 
-## asyncio
-- [```asyncio.run ```](####asyncio.run)
-- [```asyncio.sleep```](####asyncio.sleep)
-- [```asyncio.create_task ```](####asyncio.create_task)
-- [```asyncio.ensure_future```](####asyncio.ensure_future)
-- [```asyncio.get_event_loop```](####asyncio.get_event_loop)
-- [```asyncio.new_event_loop```](####asyncio.new_event_loop)
-- [```asyncio.set_event_loop```](####asyncio.set_event_loop)
-
-- [```asyncio.gather```](####asyncio.gather)
-- [```asyncio.wait```](####asyncio.wait)
-- [```asyncio.as_completed```](####asyncio.as_completed)
-
-- [```asyncio.shield```](####asyncio.shield)
-- [```asyncio.wait_for```](####asyncio.wait_for)
-- [```asyncio.open_connection```](####asyncio.open_connection)
-- [```asyncio.start_server```](####asyncio.start_server)
-- [```asyncio.run_coroutine_threadsafe```](####asyncio.run_coroutine_threadsafe)
-- [```asyncio.create_subprocess_shell```](####asyncio.create_subprocess_shell)
-- [```asyncio.create_subprocess_exec```](####asyncio.create_subprocess_exec)
-- [```asyncio.WindowsProactorEventLoopPolicy```](####asyncio.WindowsProactorEventLoopPolicy)
-
-- [```asyncio.iscoroutine```](#####asyncio.iscoroutine)
-- [```asyncio.iscoroutinefunction```](####asyncio.iscoroutinefunction)
-- [```asyncio.isfuture```](####asyncio.isfuture)
-
-
 ## AbstractEventLoop
 
 - [```AbstractEventLoop.run_until_complete ```](####AbstractEventLoop.run_until_complete)
