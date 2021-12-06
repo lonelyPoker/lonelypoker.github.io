@@ -2,7 +2,6 @@
 * [python]()
   * [Asyncio](./doc/python/asyncio.md)
   * [Scrapy](./doc/python/scrapy.md)
-  * [twisted](./doc/python/twisted.md)
 * [NodeJs]()
   * [Promise](/doc/nodejs/promise.md)
   * [Pupeeteer](/doc/nodejs/pupeeteer.md)
